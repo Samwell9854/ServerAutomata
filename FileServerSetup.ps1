@@ -14,8 +14,9 @@ Supports save points
 070 - Mirroring shares						ADD per share restor
 999 - End of script
 	
-.PARAMETER OldFs
-This is the old FS from which shares will be copied over to the new FS
+.PARAMETER
+	-OldFs									ADD in registry to load info
+		This is the old FS from which shares will be copied over to the new FS
 
 .NOTES   
 Name:        FileServerSetup.ps1
@@ -121,7 +122,7 @@ If ($Load -le 60) {
 	If ($Error) {
 		Write-Host "Reconnecting..."
 		$Error.clear()
-		New-CimSession -ComputerName $OldFs
+		New-CimSession -ComputerName $OldFs 2>&1 1> $null
 		If ($Error) {
 			Write-Host "Cannot connect to" $OldFs ", closing"
 			Read-Host -Prompt "Press Enter to exit" 1> $null
@@ -138,7 +139,7 @@ If ($Load -le 60) {
 		Write-Host "Selected leaf" $_.Name
 		If (!$(Test-Path -Path $_.NewPath)) {
 			New-Item -Path $_.NewPath -ItemType Directory 1> $null
-			Write-Host "Created folder" $_.Name
+			Write-Host "Created folder"
 		}
 		$Error.clear()
 		$LocalShares = Get-SmbShare | Select Name
@@ -147,11 +148,10 @@ If ($Load -le 60) {
 			Get-SmbShareAccess -CimSession $OldFs -Name $_.Name | ForEach-Object {
 				Grant-SmbShareAccess -Name $_.Name -AccountName $_.AccountName -AccessRight $_.AccessRight -Force 1> $null
 			}
-			If (!$Error) {
-			echo $Error
+			If ($Error) {
 				Read-Host -Prompt "Something happened. Check error, then press Enter to continue." 1> $null
 			} Else {
-				Write-Host "Created share" +  $_.Name
+				Write-Host "Created share`n"
 			}
 		} Else {
 			Write-Host "Share" $_.Name "already exists, skipping"
@@ -186,7 +186,7 @@ If ($Load -le 70) {
 		$Error.clear()
 		Write-Host "Starting mirror of $_.Name"
 		$NetworkPath = ("\\$OldFs\" + $_.Path -Replace ":","$")
-		robocopy $NetworkPath $_.NewPath /MIR /SEC /E /R:3 /W:3 /LOG:C:\robolog_$($_.Name).txt
+		robocopy $NetworkPath $_.NewPath /MIR /SEC /E /NDL /R:3 /W:3 /LOG:C:\robolog_$($_.Name).txt
 		If (!$Error) {
 			Read-Host -Prompt "Something happened. Check error, then press Enter to continue." 1> $null
 		} Else {
