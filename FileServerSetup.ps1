@@ -6,12 +6,12 @@ Script to automate configuration of a file server (FS)
 This script will configure computer name, join domain, partition disk, create shares and mirror them
 Supports save points
 
-.DESCRIPTION - LIST OF RESTORE POINTS
-010 - Computer name and Domain			MISSING
-040 - Partitioning disk					ADD handling of already created partition
+.DESCRIPTION - LIST OF RESTORE POINTS		ADD custom load point
+010 - Computer name and Domain				MISSING
+040 - Partitioning disk						ADD handling of already created partition
 050 - Creating shares > Exporting shares
 060 - Creating shares > Creating shares
-070 - Mirroring shares					MISSING + ADD per share restor
+070 - Mirroring shares						ADD per share restor
 999 - End of script
 	
 .PARAMETER OldFs
@@ -21,7 +21,7 @@ This is the old FS from which shares will be copied over to the new FS
 Name:        FileServerSetup.ps1
 Author:      Samuel Giroux
 DateUpdated: 2020-12-18
-Version:     0.2.4
+Version:     0.2.5
 
 #>
 
@@ -95,14 +95,15 @@ If ($Load -le 50) {
 	## Creating shares
 	# Exporting shares
 	Write-Host "Connecting to $OldFs"
-	New-CimSession -ComputerName $OldFs
+	$Error.clear()
+	New-CimSession -ComputerName $OldFs 1> $null
 	If ($Error) {
 		Write-Host "Unable to connect to specified FS"
 		Write-Host "Closing"
 		Read-Host -Prompt "Press Enter to exit" 1> $null
 		exit
 	} Else {
-		Write-Host "Connection established"
+		Write-Host "Connection established`n"
 	}
 	Get-SmbShare -CimSession $OldFs | Select Name, Path, NewPath | Export-Csv -Encoding UTF8 -Path $Env:Userprofile\Desktop\Smb.csv
 	Write-Host "Edit the Smb.csv file on the Desktop"
@@ -115,14 +116,14 @@ If ($Load -le 50) {
 }
 If ($Load -le 60) {
 	# Testing OldFs connection
-	Write-Host "Making sure $OldFs is still reachable..."
+	Write-Host "Making sure" $OldFs "is still reachable..."
 	Get-CimSession -ComputerName $OldFs 2>&1 1> $null
 	If ($Error) {
 		Write-Host "Reconnecting..."
 		$Error.clear()
 		New-CimSession -ComputerName $OldFs
 		If ($Error) {
-			Write-Host "Cannot connect to $OldFs, closing"
+			Write-Host "Cannot connect to" $OldFs ", closing"
 			Read-Host -Prompt "Press Enter to exit" 1> $null
 			exit
 		} Else {
@@ -134,25 +135,26 @@ If ($Load -le 60) {
 	# Creating shares
 	Write-Host "Processing tree"
 	Import-Csv -Path $Env:Userprofile\Desktop\Smb.csv | ForEach-Object {
-		Write-Host "Selected leaf $_.Name"
+		Write-Host "Selected leaf" $_.Name
 		If (!$(Test-Path -Path $_.NewPath)) {
-			New-Item -Path $_.NewPath -ItemType Directory
-			Write-Host "Created folder $_.Name"
+			New-Item -Path $_.NewPath -ItemType Directory 1> $null
+			Write-Host "Created folder" $_.Name
 		}
 		$Error.clear()
 		$LocalShares = Get-SmbShare | Select Name
 		If (!($LocalShares -Match $_.Name)) {
-			New-SmbShare -Name $_.Name -Path $_.NewPath
+			New-SmbShare -Name $_.Name -Path $_.NewPath 1> $null
 			Get-SmbShareAccess -CimSession $OldFs -Name $_.Name | ForEach-Object {
-				Grant-SmbShareAccess -Name $_.Name -AccountName $_.AccountName -AccessRight $_.AccessRight -Force
+				Grant-SmbShareAccess -Name $_.Name -AccountName $_.AccountName -AccessRight $_.AccessRight -Force 1> $null
 			}
 			If (!$Error) {
+			echo $Error
 				Read-Host -Prompt "Something happened. Check error, then press Enter to continue." 1> $null
 			} Else {
-				Write-Host "Created share  $_.Name"
+				Write-Host "Created share" +  $_.Name
 			}
 		} Else {
-			Write-Host "Share $_.Name already exists, skipping"
+			Write-Host "Share" $_.Name "already exists, skipping"
 		}
 	}
 	# Closing connections
@@ -188,7 +190,7 @@ If ($Load -le 70) {
 		If (!$Error) {
 			Read-Host -Prompt "Something happened. Check error, then press Enter to continue." 1> $null
 		} Else {
-			Write-Host "Mirrored share     $_.Name"
+			Write-Host "Mirrored share    " $_.Name
 		}
 	}
 	Set-ItemProperty -Path $LausercoReg -Name "State" -Value 71
