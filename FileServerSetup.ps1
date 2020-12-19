@@ -21,7 +21,7 @@ This is the old FS from which shares will be copied over to the new FS
 Name:        FileServerSetup.ps1
 Author:      Samuel Giroux
 DateUpdated: 2020-12-18
-Version:     0.2.3
+Version:     0.2.4
 
 #>
 
@@ -116,12 +116,12 @@ If ($Load -le 50) {
 If ($Load -le 60) {
 	# Testing OldFs connection
 	Write-Host "Making sure $OldFs is still reachable..."
-	Get-CimSession -ComputerName $OldFs
-	If (!$Error) {
-		Write-Host "Connection lost to $OldFs, retrying..."
+	Get-CimSession -ComputerName $OldFs 2>&1 1> $null
+	If ($Error) {
+		Write-Host "Reconnecting..."
 		$Error.clear()
 		New-CimSession -ComputerName $OldFs
-		If (!$Error) {
+		If ($Error) {
 			Write-Host "Cannot connect to $OldFs, closing"
 			Read-Host -Prompt "Press Enter to exit" 1> $null
 			exit
