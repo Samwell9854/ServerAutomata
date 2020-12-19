@@ -6,23 +6,23 @@ Script to automate configuration of a file server (FS)
 This script will configure computer name, join domain, partition disk, create shares and mirror them
 Supports save points
 
-.DESCRIPTION - LIST OF RESTORE POINTS		ADD custom load point
-010 - Computer name and Domain				MISSING
-040 - Partitioning disk						ADD handling of already created partition
+.DESCRIPTION - LIST OF RESTORE POINTS											ADD custom manual load point
+010 - Computer name and Domain													MISSING
+040 - Partitioning disk
 050 - Creating shares > Exporting shares
 060 - Creating shares > Creating shares
-070 - Mirroring shares						ADD per share restor
+070 - Mirroring shares															ADD per share restore + Optimize double syncs (child items synced by parent)
 999 - End of script
 	
 .PARAMETER
-	-OldFs									ADD in registry to load info
+	-OldFs																		ADD in registry to load info
 		This is the old FS from which shares will be copied over to the new FS
 
 .NOTES   
 Name:        FileServerSetup.ps1
 Author:      Samuel Giroux
 DateUpdated: 2020-12-18
-Version:     0.2.5
+Version:     0.2.6
 
 #>
 
@@ -35,6 +35,7 @@ Param (
 $LausercoReg="HKLM:\Software\Lauserco\FileServerSetup.ps1"
 
 # Initializing
+Clear-Host
 Write-Host "Initializing..."
 If (!$(Test-Path -Path $LausercoReg)) {
 	Write-Host "First run, starting up"
@@ -50,7 +51,7 @@ If (!$(Test-Path -Path $LausercoReg)) {
 		}
 		If ($Answer -Like "y*") {
 			If ($Load -lt 999) {
-				Write-Host "Loading..."
+				Write-Host "Loading...`n"
 				$Load = $(Get-ItemProperty -Path $LausercoReg -Name "State").State
 			} Else {
 				Write-Host "Starting over"
@@ -61,6 +62,7 @@ If (!$(Test-Path -Path $LausercoReg)) {
 			$Load = 0
 		} Else {
 			If ($Iteration -gt 3) {
+				Clear-Host
 				Write-Host "Closing, goodbye"
 				Read-Host -Prompt "Press Enter to exit" 1> $null
 				exit
@@ -167,12 +169,14 @@ If ($Load -le 70) {
 	Do {
 		$Answer = Read-Host -Prompt "Ready to clone shares? (Yes/No)"
 		If ($Answer -Like "n*") {
+			Clear-Host
 			Write-Host "Closing script"
 			Write-Host "You can run this script again to get back to this point"
 			Read-Host -Prompt "Press Enter to exit" 1> $null
 			exit
 		} Else {
 			If ($Iteration -gt 3) {
+				Clear-Host
 				Write-Host "Closing, goodbye"
 				Read-Host -Prompt "Press Enter to exit" 1> $null
 				exit
