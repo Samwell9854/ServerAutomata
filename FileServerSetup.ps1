@@ -21,7 +21,7 @@ This is the old FS from which shares will be copied over to the new FS
 Name:        FileServerSetup.ps1
 Author:      Samuel Giroux
 DateUpdated: 2020-12-18
-Version:     0.2.2
+Version:     0.2.3
 
 #>
 
@@ -31,11 +31,11 @@ Param (
 	$OldFs
 )
 
-$LausercoReg="HKLM:\Software\Lauserco\FS_Setup.ps1"
+$LausercoReg="HKLM:\Software\Lauserco\FileServerSetup.ps1"
 
 # Initializing
 Write-Host "Initializing..."
-If (!$(Test-Path -Path "HKLM:\Software\Lauserco\FS_Setup.ps1")) {
+If (!$(Test-Path -Path $LausercoReg)) {
 	Write-Host "First run, starting up"
 	New-Item -Path $LausercoReg -Force
 	New-ItemProperty -Path $LausercoReg -Name State -PropertyType DWord -Value 0
