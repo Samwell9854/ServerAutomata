@@ -168,7 +168,7 @@ If ($Load -le 70) {
 	# Mirroring shares
 	Do {
 		$Answer = Read-Host -Prompt "Ready to clone shares? (Yes/No)"
-		If ($Answer -Like "n*") {
+		If ($Answer -Like "y*") {} ElseIf ($Answer -Like "n*") {
 			Clear-Host
 			Write-Host "Closing script"
 			Write-Host "You can run this script again to get back to this point"
@@ -188,7 +188,7 @@ If ($Load -le 70) {
 	} Until ($Answer -Like "y*" -Or $Answer -Like "n*")
 	Import-Csv -Path $Env:Userprofile\Desktop\Smb.csv | ForEach-Object {
 		$Error.clear()
-		Write-Host "Starting mirror of $_.Name"
+		Write-Host "Starting mirror of" $_.Name
 		$NetworkPath = ("\\$OldFs\" + $_.Path -Replace ":","$")
 		robocopy $NetworkPath $_.NewPath /MIR /SEC /E /NDL /R:3 /W:3 /LOG:C:\robolog_$($_.Name).txt
 		If (!$Error) {
