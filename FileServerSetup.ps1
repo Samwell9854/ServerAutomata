@@ -74,6 +74,7 @@ If (!$(Test-Path -Path $LausercoReg)) {
 	} Until ($Answer -Like "y*" -Or $Answer -Like "n*")
 }
 
+# 040 - Partitioning disk
 If ($Load -le 40) {
 	# Partitioning Disk
 	$Error.clear()
@@ -94,6 +95,7 @@ If ($Load -le 40) {
 	Set-ItemProperty -Path $LausercoReg -Name "State" -Value 41
 }
 
+# 050 - Creating shares > Exporting shares
 If ($Load -le 50) {
 	## Creating shares
 	# Exporting shares
@@ -117,6 +119,7 @@ If ($Load -le 50) {
 	# Waiting for user to fix CSV file
 	Read-Host -Prompt "Press Enter to continue" 1> $null
 }
+# 060 - Creating shares > Creating shares
 If ($Load -le 60) {
 	# Testing OldFs connection
 	Write-Host "Making sure" $OldFs "is still reachable..."
@@ -164,6 +167,7 @@ If ($Load -le 60) {
 	Set-ItemProperty -Path $LausercoReg -Name "State" -Value 61
 }
 
+# 070 - Mirroring shares
 If ($Load -le 70) {
 	# Mirroring shares
 	Do {
@@ -191,7 +195,7 @@ If ($Load -le 70) {
 		Write-Host "Starting mirror of" $_.Name
 		$NetworkPath = ("\\$OldFs\" + $_.Path -Replace ":","$")
 		robocopy $NetworkPath $_.NewPath /MIR /SEC /E /NDL /R:3 /W:3 /LOG:C:\robolog_$($_.Name).txt
-		If (!$Error) {
+		If ($Error) {
 			Read-Host -Prompt "Something happened. Check error, then press Enter to continue." 1> $null
 		} Else {
 			Write-Host "Mirrored share    " $_.Name
@@ -200,6 +204,7 @@ If ($Load -le 70) {
 	Set-ItemProperty -Path $LausercoReg -Name "State" -Value 71
 }
 
+# 999 - End of script
 Do {
 		Write-Host "End of configuration. Mark as completed? (Yes/No)"
 		$Answer = Read-Host -Prompt "Answering No will enable to load back to last step"
