@@ -42,8 +42,8 @@ If (!$(Test-Path -Path $LausercoReg)) {
 	New-Item -Path $LausercoReg -Force
 	New-ItemProperty -Path $LausercoReg -Name State -PropertyType DWord -Value 0
 } Else {
-	$Iteration = 0
 	Do {
+		$Iteration = 0
 		If ($(Get-ItemProperty -Path $LausercoReg -Name "State").State -eq 999) {
 			$Answer = Read-Host -Prompt "Script process successful, really run again? (Yes/No)"
 		} Else {
@@ -61,7 +61,7 @@ If (!$(Test-Path -Path $LausercoReg)) {
 			Write-Host "Starting over"
 			$Load = 0
 		} Else {
-			If ($Iteration -gt 3) {
+			If ($Iteration -gt 2) {
 				Clear-Host
 				Write-Host "Closing, goodbye"
 				Read-Host -Prompt "Press Enter to exit" 1> $null
@@ -171,6 +171,7 @@ If ($Load -le 60) {
 If ($Load -le 70) {
 	# Mirroring shares
 	Do {
+		$Iteration = 0
 		$Answer = Read-Host -Prompt "Ready to clone shares? (Yes/No)"
 		If ($Answer -Like "y*") {} ElseIf ($Answer -Like "n*") {
 			Clear-Host
@@ -179,7 +180,7 @@ If ($Load -le 70) {
 			Read-Host -Prompt "Press Enter to exit" 1> $null
 			exit
 		} Else {
-			If ($Iteration -gt 3) {
+			If ($Iteration -gt 2) {
 				Clear-Host
 				Write-Host "Closing, goodbye"
 				Read-Host -Prompt "Press Enter to exit" 1> $null
@@ -206,23 +207,24 @@ If ($Load -le 70) {
 
 # 999 - End of script
 Do {
-		Write-Host "End of configuration. Mark as completed? (Yes/No)"
-		$Answer = Read-Host -Prompt "Answering No will enable to load back to last step"
-		If ($Answer -Like "y*") {
-			Set-ItemProperty -Path $LausercoReg -Name "State" -Value 999
-		} ElseIf ($Answer -Like "n*") {
-			Write-Host "Keeping last save point"
+	$Iteration = 0
+	Write-Host "End of configuration. Mark as completed? (Yes/No)"
+	$Answer = Read-Host -Prompt "Answering No will enable to load back to last step"
+	If ($Answer -Like "y*") {
+		Set-ItemProperty -Path $LausercoReg -Name "State" -Value 999
+	} ElseIf ($Answer -Like "n*") {
+		Write-Host "Keeping last save point"
+	} Else {
+		If ($Iteration -gt 2) {
+			Write-Host "Closing, goodbye"
+			Read-Host -Prompt "Press Enter to exit" 1> $null
+			exit
 		} Else {
-			If ($Iteration -gt 3) {
-				Write-Host "Closing, goodbye"
-				Read-Host -Prompt "Press Enter to exit" 1> $null
-				exit
-			} Else {
-				Write-Host "Sorry, I did not get that"
-				$Iteration++
-			}
+			Write-Host "Sorry, I did not get that"
+			$Iteration++
 		}
-	} Until ($Answer -Like "y*" -Or $Answer -Like "n*")
+	}
+} Until ($Answer -Like "y*" -Or $Answer -Like "n*")
 Write-Host "End of script"
 Write-Host "Have a nice day!"
 Start-Sleep 8
