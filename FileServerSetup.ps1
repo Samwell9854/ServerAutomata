@@ -22,7 +22,7 @@ Supports save points
 Name:        FileServerSetup.ps1
 Author:      Samuel Giroux
 DateUpdated: 2020-12-18
-Version:     0.2.6
+Version:     0.2.7
 
 #>
 
@@ -195,7 +195,7 @@ If ($Load -le 70) {
 		$Error.clear()
 		Write-Host "Starting mirror of" $_.Name
 		$NetworkPath = ("\\$OldFs\" + $_.Path -Replace ":","$")
-		robocopy $NetworkPath $_.NewPath /MIR /SEC /E /NDL /R:3 /W:3 /LOG:C:\robolog_$($_.Name).txt
+		robocopy $NetworkPath $_.NewPath /MIR /SEC /E /NDL /R:3 /W:3 /LOG:"C:\robolog_$($_.Name).txt"
 		If ($Error) {
 			Read-Host -Prompt "Something happened. Check error, then press Enter to continue." 1> $null
 		} Else {
